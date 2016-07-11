@@ -1,6 +1,10 @@
 package main
 
-import "golang.org/x/crypto/bcrypt"
+import (
+    "fmt"
+    "encoding/json"
+    "golang.org/x/crypto/bcrypt"
+)
 
 type User struct {
     ID              string
@@ -59,4 +63,9 @@ func NewUser(username, email, password string) (User, error) {
     user.ID = GenerateID("usr", userIDLength)
 
     return user, err
+}
+
+func (user User) String () string {
+    jsonUser, _ := json.MarshalIndent(user, "", "  ")
+    return fmt.Sprintf(string(jsonUser))
 }

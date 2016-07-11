@@ -27,8 +27,10 @@ type UserStore interface{
 }
 
 type FileUserStore struct {
-    filename    string
-    Users       map[string]User
+    filename        string
+    usernameLookup  map[string]User
+    emailLookup     map[string]User
+    Users           map[string]User
 }
 
 func NewFileUserStore(filename string) (*FileUserStore, error) {
@@ -52,7 +54,30 @@ func NewFileUserStore(filename string) (*FileUserStore, error) {
         return nil, err
     }
 
+    store.loadLookupMaps()
+
     return store, nil
+}
+
+func (store *FileUserStore) loadLookupMaps () {
+
+    for _, user := range store.Users {
+        store.addUserToLookupMaps(user)
+    }
+}
+
+func (store *FileUserStore) addUserToLookupMaps (user User) {
+    if len(store.usernameLookup) == 0 {
+        store.usernameLookup = map[string]User{}
+    }
+    if len(store.emailLookup) == 0 {
+        store.emailLookup = map[string]User{}
+    }
+    store.usernameLookup[strings.ToLower(user.Username)] = user
+    store.emailLookup[strings.ToLower(user.Email)] = user
+
+    fmt.Println("Username lookup:", store.usernameLookup)
+    fmt.Println("Email lookup:", store.emailLookup)
 }
 
 func (store FileUserStore) Save (user User) error {
@@ -67,6 +92,8 @@ func (store FileUserStore) Save (user User) error {
     if err != nil {
         return err
     }
+
+    store.addUserToLookupMaps(user)
 
     return nil
 }
@@ -86,10 +113,9 @@ func (store FileUserStore) FindByUsername (username string) (*User, error) {
         return nil, nil
     }
 
-    for _, user := range store.Users {
-        if strings.ToLower(username) == strings.ToLower(user.Username) {
-            return &user, nil
-        }
+    user, itemExists := store.usernameLookup[strings.ToLower(username)]
+    if itemExists {
+        return &user, nil
     }
 
     return nil, nil
@@ -100,10 +126,9 @@ func (store FileUserStore) FindByEmail (email string) (*User, error) {
         return nil, nil
     }
 
-    for _, user := range store.Users {
-        if strings.ToLower(email) == strings.ToLower(user.Email) {
-            return &user, nil
-        }
+    user, itemExists := store.emailLookup[strings.ToLower(email)]
+    if itemExists {
+        return &user, nil
     }
 
     return nil, nil
