@@ -20,6 +20,9 @@ func main() {
 
     unauthenticatedRouter := NewRouter()
     unauthenticatedRouter.GET("/", HandleHome)
+    unauthenticatedRouter.GET("/register", HandleNewUser)
+    unauthenticatedRouter.POST("/register", HandleUserCreate)
+    // unauthenticatedRouter.Handle("POST", "/register", HandleUserCreate)
     unauthenticatedRouter.ServeFiles("/assets/*filepath", http.Dir("assets/"))
 
     authenticatedRouter := NewRouter()
