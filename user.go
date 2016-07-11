@@ -19,42 +19,48 @@ const (
     userIDLength    = 16
 )
 
-func NewUser(username, email, password string) (User, error) {
+func NewUser(username, email, password string) (User, []error) {
+    errors := make([]error, 0)
+
     user := User {
         Email: email,
         Username: username,
     }
 
     if username == "" {
-        return user, errNoUsername
+        errors = append(errors, errNoUsername)
     }
 
     if email == "" {
-        return user, errNoEmail
+        errors = append(errors, errNoEmail)
     }
 
     if password == "" {
-        return user, errNoPassword
+        errors = append(errors, errNoPassword)
     }
 
     if len(password) < passwordLength {
-        return user, errPasswordTooShort
+        errors = append(errors, errPasswordTooShort)
     }
 
     existingUser, err := globalUserStore.FindByUsername(username)
     if err != nil {
-        return user, err
+        errors = append(errors, err)
     }
     if existingUser != nil {
-        return user, errUsernameExists
+        errors = append(errors, errUsernameExists)
     }
 
     existingUser, err = globalUserStore.FindByEmail(email)
     if err != nil {
-        return user, err
+        errors = append(errors, err)
     }
     if existingUser != nil {
-        return user, errEmailExists
+        errors = append(errors, errEmailExists)
+    }
+
+    if len(errors) > 0 {
+        return user, errors
     }
 
     hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), hashCost)
@@ -62,7 +68,11 @@ func NewUser(username, email, password string) (User, error) {
     user.HashedPassword = string(hashedPassword)
     user.ID = GenerateID("usr", userIDLength)
 
-    return user, err
+    if err != nil {
+        errors = append(errors, err)
+    }
+
+    return user, errors
 }
 
 func (user User) String () string {
