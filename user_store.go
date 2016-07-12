@@ -75,9 +75,6 @@ func (store *FileUserStore) addUserToLookupMaps(user User) {
 	}
 	store.usernameLookup[strings.ToLower(user.Username)] = user
 	store.emailLookup[strings.ToLower(user.Email)] = user
-
-	fmt.Println("Username lookup:", store.usernameLookup)
-	fmt.Println("Email lookup:", store.emailLookup)
 }
 
 func (store FileUserStore) Save(user User) error {
