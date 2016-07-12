@@ -1,8 +1,9 @@
 package main
 
 import (
-	"github.com/julienschmidt/httprouter"
 	"net/http"
+
+	"github.com/julienschmidt/httprouter"
 )
 
 func HandleNewUser(responseWriter http.ResponseWriter, request *http.Request, _ httprouter.Params) {
@@ -39,6 +40,14 @@ func HandleUserCreate(responseWriter http.ResponseWriter, request *http.Request,
 	}
 
 	err := globalUserStore.Save(user)
+	if err != nil {
+		panic(err)
+	}
+
+	session := NewSession(responseWriter)
+	session.UserID = user.ID
+
+	err = globalSessionStore.Save(session)
 	if err != nil {
 		panic(err)
 	}
