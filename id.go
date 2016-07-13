@@ -1,8 +1,8 @@
 package main
 
 import (
-    "fmt"
-    "crypto/rand"
+	"crypto/rand"
+	"fmt"
 )
 
 const idSource = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
@@ -10,17 +10,17 @@ const idSource = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz
 const idSourceLength = byte(len(idSource))
 
 func GenerateID(prefix string, length int) string {
-    // create an array with the correct capacity
-    id := make([]byte, length)
+	// create an array with the correct capacity
+	id := make([]byte, length)
 
-    // Fill our array with random numbers
-    rand.Read(id)
+	// Fill our array with random numbers
+	rand.Read(id)
 
-    for i, b := range id {
-        id[i] = idSource[b % idSourceLength]
-    }
+	for i, b := range id {
+		id[i] = idSource[b%idSourceLength]
+	}
 
-    return fmt.Sprintf("%s_%s", prefix, string(id))
+	return fmt.Sprintf("%s_%s", prefix, string(id))
 }
 
 // func main() {
