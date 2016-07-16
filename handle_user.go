@@ -54,3 +54,40 @@ func HandleUserCreate(responseWriter http.ResponseWriter, request *http.Request,
 
 	http.Redirect(responseWriter, request, "/?flash=User+created", http.StatusFound)
 }
+
+func HandleUserEdit(responseWriter http.ResponseWriter, request *http.Request, _ httprouter.Params) {
+	user := RequestUser(request)
+	templateData := map[string]interface{}{
+		"User": user,
+	}
+	RenderTemplate(responseWriter, request, "users/edit", templateData)
+}
+
+func HandleUserUpdate(responseWriter http.ResponseWriter, request *http.Request, _ httprouter.Params) {
+	currentUser := RequestUser(request)
+	email := request.FormValue("email")
+	currentPassword := request.FormValue("currentPassword")
+	newPassword := request.FormValue("newPassword")
+
+	user, err := UpdateUser(currentUser, email, currentPassword, newPassword)
+	templateData := map[string]interface{}{
+		"User": user,
+	}
+	if err != nil {
+		if IsValidationError(err) {
+			templateData["Error"] = err.Error()
+			RenderTemplate(responseWriter, request, "users/edit", templateData)
+
+			return
+		}
+		panic(err)
+	}
+
+	err = globalUserStore.Save(*currentUser)
+	if err != nil {
+		panic(err)
+	}
+
+	redirectURL := "/account?flash=User+updated"
+	http.Redirect(responseWriter, request, redirectURL, http.StatusFound)
+}

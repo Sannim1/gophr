@@ -9,6 +9,7 @@ var (
 	errNoEmail              = ValidationError(errors.New("You must supply an email"))
 	errNoPassword           = ValidationError(errors.New("You must supply a password"))
 	errPasswordTooShort     = ValidationError(errors.New("Your password is too short"))
+	errPasswordIncorrect    = ValidationError(errors.New("Your password is incorrect"))
 	errUsernameExists       = ValidationError(errors.New("That username is taken"))
 	errEmailExists          = ValidationError(errors.New("That email address already has an account"))
 	errCredentialsIncorrect = ValidationError(errors.New("We could not find a user with the supplied username and password combination"))

@@ -31,6 +31,8 @@ func main() {
 	authenticatedRouter := NewRouter()
 	authenticatedRouter.GET("/images/new", HandleNewImage)
 	authenticatedRouter.GET("/sign-out", HandleSessionDestroy)
+	authenticatedRouter.GET("/account", HandleUserEdit)
+	authenticatedRouter.POST("/account", HandleUserUpdate)
 
 	middleware := Middleware{}
 	middleware.Add(unauthenticatedRouter)
