@@ -30,8 +30,14 @@ func RenderTemplate(
 	responseWriter http.ResponseWriter,
 	request *http.Request,
 	templateName string,
-	templateData interface{},
+	templateData map[string]interface{},
 ) {
+	if templateData == nil {
+		templateData = map[string]interface{}{}
+	}
+	templateData["CurrentUser"] = RequestUser(request)
+	templateData["Flash"] = request.URL.Query().Get("flash")
+
 	funcs := template.FuncMap{
 		"yield": func() (template.HTML, error) {
 			buffer := bytes.NewBuffer(nil)

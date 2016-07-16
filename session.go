@@ -96,3 +96,12 @@ func RequireLogin(responseWriter http.ResponseWriter, request *http.Request) {
 func (session *Session) Expired() bool {
 	return session.Expiry.Before(time.Now())
 }
+
+func FindOrCreateSession(responseWriter http.ResponseWriter, request *http.Request) *Session {
+	session := RequestSession(request)
+	if session == nil {
+		session = NewSession(responseWriter)
+	}
+
+	return session
+}

@@ -1,8 +1,10 @@
 package main
 
 import (
-	"github.com/julienschmidt/httprouter"
+	"log"
 	"net/http"
+
+	"github.com/julienschmidt/httprouter"
 )
 
 func main() {
@@ -22,18 +24,21 @@ func main() {
 	unauthenticatedRouter.GET("/", HandleHome)
 	unauthenticatedRouter.GET("/register", HandleNewUser)
 	unauthenticatedRouter.POST("/register", HandleUserCreate)
-	// unauthenticatedRouter.Handle("POST", "/register", HandleUserCreate)
+	unauthenticatedRouter.GET("/login", HandleSessionNew)
+	unauthenticatedRouter.POST("/login", HandleSessionCreate)
 	unauthenticatedRouter.ServeFiles("/assets/*filepath", http.Dir("assets/"))
 
 	authenticatedRouter := NewRouter()
 	authenticatedRouter.GET("/images/new", HandleNewImage)
+	authenticatedRouter.GET("/sign-out", HandleSessionDestroy)
 
 	middleware := Middleware{}
 	middleware.Add(unauthenticatedRouter)
-	middleware.Add(http.HandlerFunc(AuthenticateRequest))
+	// middleware.Add(http.HandlerFunc(AuthenticateRequest))
+	middleware.Add(http.HandlerFunc(RequireLogin))
 	middleware.Add(authenticatedRouter)
 
-	http.ListenAndServe(":3000", middleware)
+	log.Fatal(http.ListenAndServe(":3000", middleware))
 }
 
 type NotFound struct{}

@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -20,7 +21,8 @@ const (
 )
 
 func NewUser(username, email, password string) (User, []error) {
-	errors := make([]error, 0)
+
+	var errors []error
 
 	user := User{
 		Email:    email,
@@ -73,6 +75,32 @@ func NewUser(username, email, password string) (User, []error) {
 	}
 
 	return user, errors
+}
+
+func FindUser(username, password string) (*User, error) {
+	userToBeFound := &User{
+		Username: username,
+	}
+
+	existingUser, err := globalUserStore.FindByUsername(username)
+	if err != nil {
+		return userToBeFound, err
+	}
+
+	if existingUser == nil {
+		return userToBeFound, errCredentialsIncorrect
+	}
+
+	comparePasswords := bcrypt.CompareHashAndPassword(
+		[]byte(existingUser.HashedPassword),
+		[]byte(password),
+	)
+
+	if comparePasswords != nil {
+		return userToBeFound, errCredentialsIncorrect
+	}
+
+	return existingUser, nil
 }
 
 func (user User) String() string {
