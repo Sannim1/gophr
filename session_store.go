@@ -1,11 +1,6 @@
 package main
 
-import (
-	"encoding/json"
-	"fmt"
-	"io/ioutil"
-	"os"
-)
+import "fmt"
 
 var globalSessionStore SessionStore
 
@@ -25,33 +20,27 @@ type SessionStore interface {
 }
 
 type FileSessionStore struct {
-	filename string
 	Sessions map[string]Session
+	*FileStore
 }
 
 func NewFileSessionStore(filename string) (*FileSessionStore, error) {
+	filestore, err := NewFileStore(filename)
+	if err != nil {
+		return nil, err
+	}
+
 	store := &FileSessionStore{
-		Sessions: map[string]Session{},
-		filename: filename,
+		Sessions:  map[string]Session{},
+		FileStore: filestore,
 	}
 
-	contents, err := ioutil.ReadFile(filename)
-
-	if err != nil {
-		if os.IsNotExist(err) {
-			// ignore error if file does not exist, means its a new session
-			return store, nil
-		}
-
-		return nil, err
-	}
-
-	err = json.Unmarshal(contents, store)
+	err = store.ReadJSONInto(store)
 	if err != nil {
 		return nil, err
 	}
 
-	return store, err
+	return store, nil
 }
 
 func (store *FileSessionStore) Find(sessionID string) (*Session, error) {
@@ -66,21 +55,11 @@ func (store *FileSessionStore) Find(sessionID string) (*Session, error) {
 func (store *FileSessionStore) Save(session *Session) error {
 	store.Sessions[session.ID] = *session
 
-	contents, err := json.MarshalIndent(store, "", "  ")
-	if err != nil {
-		return err
-	}
-
-	return ioutil.WriteFile(store.filename, contents, 0660)
+	return store.WriteJSONFrom(store)
 }
 
 func (store *FileSessionStore) Delete(session *Session) error {
 	delete(store.Sessions, session.ID)
 
-	contents, err := json.MarshalIndent(store, "", "  ")
-	if err != nil {
-		return err
-	}
-
-	return ioutil.WriteFile(store.filename, contents, 0660)
+	return store.WriteJSONFrom(store)
 }
