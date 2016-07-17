@@ -27,8 +27,8 @@
         </nav>
         <div class="container">
             {{ if .Flash }}
-                <div class="alert alert-info">
-                    {{ .Flash }}
+                <div class="alert {{ .Flash.AlertType }}">
+                    {{ .Flash.Message }}
                 </div>
             {{ end }}
             {{ yield }}

@@ -36,7 +36,7 @@ func RenderTemplate(
 		templateData = map[string]interface{}{}
 	}
 	templateData["CurrentUser"] = RequestUser(request)
-	templateData["Flash"] = request.URL.Query().Get("flash")
+	templateData["Flash"] = prepareFlash(request)
 
 	funcs := template.FuncMap{
 		"yield": func() (template.HTML, error) {
@@ -61,6 +61,39 @@ func RenderTemplate(
 			http.StatusInternalServerError,
 		)
 	}
+}
+
+func prepareFlash(request *http.Request) map[string]string {
+
+	flashMessage := request.URL.Query().Get("flash_message")
+	if flashMessage == "" {
+		return nil
+	}
+
+	flash := map[string]string{
+		"Message": flashMessage,
+	}
+
+	messageType := request.URL.Query().Get("msg_type")
+	flash["AlertType"] = getAlertType(messageType)
+
+	return flash
+}
+
+func getAlertType(messageType string) (alertType string) {
+	validAlerts := map[string]struct{}{
+		"success": {},
+		"info":    {},
+		"danger":  {},
+		"warning": {},
+	}
+
+	_, isValidAlert := validAlerts[messageType]
+	if !isValidAlert {
+		return "alert-info"
+	}
+
+	return fmt.Sprintf("alert-%s", messageType)
 }
 
 var errorTemplate = `

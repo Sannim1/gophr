@@ -52,7 +52,8 @@ func HandleUserCreate(responseWriter http.ResponseWriter, request *http.Request,
 		panic(err)
 	}
 
-	http.Redirect(responseWriter, request, "/?flash=User+created", http.StatusFound)
+	redirectURL := "/?flash_message=User+created&msg_type=success"
+	http.Redirect(responseWriter, request, redirectURL, http.StatusFound)
 }
 
 func HandleUserEdit(responseWriter http.ResponseWriter, request *http.Request, _ httprouter.Params) {
@@ -88,6 +89,6 @@ func HandleUserUpdate(responseWriter http.ResponseWriter, request *http.Request,
 		panic(err)
 	}
 
-	redirectURL := "/account?flash=User+updated"
+	redirectURL := "/account?flash_message=User+updated&msg_type=success"
 	http.Redirect(responseWriter, request, redirectURL, http.StatusFound)
 }

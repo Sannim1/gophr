@@ -48,7 +48,7 @@ func HandleSessionCreate(responseWriter http.ResponseWriter, request *http.Reque
 		next = "/"
 	}
 
-	redirectURL := next + "?flash=Signed+in"
+	redirectURL := next + "?flash_message=Signed+in"
 
 	http.Redirect(responseWriter, request, redirectURL, http.StatusFound)
 }
