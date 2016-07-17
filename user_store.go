@@ -1,10 +1,7 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
-	"io/ioutil"
-	"os"
 	"strings"
 )
 
@@ -27,29 +24,23 @@ type UserStore interface {
 }
 
 type FileUserStore struct {
-	filename       string
+	Users          map[string]User
 	usernameLookup map[string]User
 	emailLookup    map[string]User
-	Users          map[string]User
+	*FileStore
 }
 
 func NewFileUserStore(filename string) (*FileUserStore, error) {
-	store := &FileUserStore{
-		filename: filename,
-		Users:    map[string]User{},
-	}
-
-	contents, err := ioutil.ReadFile(filename)
+	filestore, err := NewFileStore(filename)
 	if err != nil {
-		// if file does not exist, means a new UserStore, so that's OK
-		if os.IsNotExist(err) {
-			return store, nil
-		}
-
 		return nil, err
 	}
+	store := &FileUserStore{
+		Users:     map[string]User{},
+		FileStore: filestore,
+	}
 
-	err = json.Unmarshal(contents, store)
+	err = store.ReadJSONInto(store)
 	if err != nil {
 		return nil, err
 	}
@@ -80,12 +71,7 @@ func (store *FileUserStore) addUserToLookupMaps(user User) {
 func (store FileUserStore) Save(user User) error {
 	store.Users[user.ID] = user
 
-	contents, err := json.MarshalIndent(store, "", "  ")
-	if err != nil {
-		return err
-	}
-
-	err = ioutil.WriteFile(store.filename, contents, 0660)
+	err := store.WriteJSONFrom(store)
 	if err != nil {
 		return err
 	}
