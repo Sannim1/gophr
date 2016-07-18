@@ -1,17 +1,6 @@
 package main
 
-import "fmt"
-
 var globalSessionStore SessionStore
-
-func init() {
-	sessionStore, err := NewFileSessionStore("./data/sessions.json")
-	if err != nil {
-		panic(fmt.Errorf("Error creating session store: %s", err))
-	}
-
-	globalSessionStore = sessionStore
-}
 
 type SessionStore interface {
 	Find(string) (*Session, error)

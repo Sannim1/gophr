@@ -1,20 +1,8 @@
 package main
 
-import (
-	"fmt"
-	"strings"
-)
+import "strings"
 
 var globalUserStore UserStore
-
-func init() {
-	store, err := NewFileUserStore("./data/users.json")
-	if err != nil {
-		panic(fmt.Errorf("Error creating user store: %s", err))
-	}
-
-	globalUserStore = store
-}
 
 type UserStore interface {
 	Find(string) (*User, error)
