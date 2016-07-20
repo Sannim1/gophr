@@ -56,10 +56,11 @@ func main() {
 	unauthenticatedRouter.ServeFiles("/assets/*filepath", http.Dir("assets/"))
 
 	authenticatedRouter := NewRouter()
-	authenticatedRouter.GET("/images/new", HandleNewImage)
 	authenticatedRouter.GET("/sign-out", HandleSessionDestroy)
 	authenticatedRouter.GET("/account", HandleUserEdit)
 	authenticatedRouter.POST("/account", HandleUserUpdate)
+	authenticatedRouter.GET("/images/new", HandleImageNew)
+	authenticatedRouter.POST("/images/new", HandleImageCreate)
 
 	middleware := Middleware{}
 	middleware.Add(unauthenticatedRouter)
