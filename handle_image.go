@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/julienschmidt/httprouter"
@@ -9,6 +10,38 @@ import (
 // HandleImageNew displays a new image form
 func HandleImageNew(responseWriter http.ResponseWriter, request *http.Request, _ httprouter.Params) {
 	RenderTemplate(responseWriter, request, "images/new", nil)
+}
+
+// HandleImageShow displays a single image on it's own page
+func HandleImageShow(responseWriter http.ResponseWriter, request *http.Request, params httprouter.Params) {
+	imageID := params.ByName("imageID")
+	image, err := globalImageStore.Find(imageID)
+	if err != nil {
+		panic(err)
+	}
+
+	// check image exists
+	if image == nil {
+		http.NotFound(responseWriter, request)
+		return
+	}
+
+	// Get image owner
+	user, err := globalUserStore.Find(image.UserID)
+	if err != nil {
+		panic(err)
+	}
+
+	if user == nil {
+		panic(fmt.Errorf("Could not find user %s for image:%s", image.UserID, image.ID))
+	}
+
+	templateData := map[string]interface{}{
+		"User":  user,
+		"Image": image,
+	}
+
+	RenderTemplate(responseWriter, request, "images/show", templateData)
 }
 
 // HandleImageCreate creates a new image

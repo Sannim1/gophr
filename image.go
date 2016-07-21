@@ -38,6 +38,16 @@ func NewImage(user *User) *Image {
 	}
 }
 
+// StaticRoute generates a path from which the image can be retrieved
+func (image *Image) StaticRoute() string {
+	return "/im/" + image.Location
+}
+
+// ShowRoute generates a path to the image's display page
+func (image *Image) ShowRoute() string {
+	return "/image/" + image.ID
+}
+
 // CreateFromURL creates and persists an image from specified URL
 func (image *Image) CreateFromURL(imageURL string) error {
 	// Get the response from the URL

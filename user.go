@@ -1,12 +1,14 @@
 package main
 
 import (
+	"crypto/md5"
 	"encoding/json"
 	"fmt"
 
 	"golang.org/x/crypto/bcrypt"
 )
 
+// User represents a user in the system
 type User struct {
 	ID             string
 	Email          string
@@ -20,6 +22,7 @@ const (
 	userIDLength   = 16
 )
 
+// NewUser creates a new user
 func NewUser(username, email, password string) (User, []error) {
 
 	var errors []error
@@ -77,6 +80,7 @@ func NewUser(username, email, password string) (User, []error) {
 	return user, errors
 }
 
+// FindUser retrieves a user by their username and password combination
 func FindUser(username, password string) (*User, error) {
 	userToBeFound := &User{
 		Username: username,
@@ -103,6 +107,7 @@ func FindUser(username, password string) (*User, error) {
 	return existingUser, nil
 }
 
+// UpdateUser updates the details of an existing user
 func UpdateUser(user *User, email, currentPassword, newPassword string) (User, error) {
 	userToBeUpdated := *user
 	userToBeUpdated.Email = email
@@ -150,4 +155,17 @@ func UpdateUser(user *User, email, currentPassword, newPassword string) (User, e
 func (user User) String() string {
 	jsonUser, _ := json.MarshalIndent(user, "", "  ")
 	return fmt.Sprintf(string(jsonUser))
+}
+
+// AvatarURL gets the url a user's avatar
+func (user *User) AvatarURL() string {
+	return fmt.Sprintf(
+		"//www.gravatar.com/avatar/%x",
+		md5.Sum([]byte(user.Email)),
+	)
+}
+
+// ImagesRoute generates the URL to the page containing all of the user's images
+func (user *User) ImagesRoute() string {
+	return "/user/" + user.ID
 }

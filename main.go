@@ -54,6 +54,7 @@ func main() {
 	unauthenticatedRouter.GET("/login", HandleSessionNew)
 	unauthenticatedRouter.POST("/login", HandleSessionCreate)
 	unauthenticatedRouter.ServeFiles("/assets/*filepath", http.Dir("assets/"))
+	unauthenticatedRouter.ServeFiles("/im/*filepath", http.Dir("data/images/"))
 
 	authenticatedRouter := NewRouter()
 	authenticatedRouter.GET("/sign-out", HandleSessionDestroy)
@@ -61,6 +62,7 @@ func main() {
 	authenticatedRouter.POST("/account", HandleUserUpdate)
 	authenticatedRouter.GET("/images/new", HandleImageNew)
 	authenticatedRouter.POST("/images/new", HandleImageCreate)
+	authenticatedRouter.GET("/image/:imageID", HandleImageShow)
 
 	middleware := Middleware{}
 	middleware.Add(unauthenticatedRouter)

@@ -1,11 +1,21 @@
 package main
 
 import (
-	"github.com/julienschmidt/httprouter"
 	"net/http"
+
+	"github.com/julienschmidt/httprouter"
 )
 
+// HandleHome displays the home page
 func HandleHome(responseWriter http.ResponseWriter, request *http.Request, params httprouter.Params) {
-	// Display home page
-	RenderTemplate(responseWriter, request, "index/home", nil)
+	images, err := globalImageStore.FindAll(0)
+	if err != nil {
+		panic(err)
+	}
+
+	templateData := map[string]interface{}{
+		"Images": images,
+	}
+
+	RenderTemplate(responseWriter, request, "index/home", templateData)
 }
