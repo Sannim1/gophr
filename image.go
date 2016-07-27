@@ -30,6 +30,16 @@ var mimeExtensions = map[string]string{
 	"image/gif":  ".gif",
 }
 
+func isValidExtension(extension string) bool {
+	for _, validExtension := range mimeExtensions {
+		if validExtension == extension {
+			return true
+		}
+	}
+
+	return false
+}
+
 // NewImage creates a new image for a specified user
 func NewImage(user *User) *Image {
 	return &Image{
@@ -105,6 +115,12 @@ func (image *Image) CreateFromFile(file multipart.File, headers *multipart.FileH
 	// Move the file to an appropriate location, with an appropriate name
 	image.Name = headers.Filename
 	image.Location = image.ID + filepath.Ext(image.Name)
+
+	// check that the file has a valid extension
+	fileExtension := filepath.Ext(image.Name)
+	if !isValidExtension(fileExtension) {
+		return errInvalidImageType
+	}
 
 	// Open a file at target location
 	savedFile, err := os.Create("./data/images/" + image.Location)
