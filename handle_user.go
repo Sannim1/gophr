@@ -6,11 +6,42 @@ import (
 	"github.com/julienschmidt/httprouter"
 )
 
+// HandleUserShow displays a page containing the user's images
+func HandleUserShow(responseWriter http.ResponseWriter, request *http.Request, params httprouter.Params) {
+
+	userID := params.ByName("userID")
+
+	user, err := globalUserStore.Find(userID)
+	if err != nil {
+		panic(err)
+	}
+
+	// 404, user does not exists
+	if user == nil {
+		http.NotFound(responseWriter, request)
+		return
+	}
+
+	images, err := globalImageStore.FindAllByUser(user, 0)
+	if err != nil {
+		panic(err)
+	}
+
+	templateData := map[string]interface{}{
+		"Images": images,
+		"User":   user,
+	}
+
+	RenderTemplate(responseWriter, request, "users/show", templateData)
+}
+
+// HandleNewUser displays a page to register new users
 func HandleNewUser(responseWriter http.ResponseWriter, request *http.Request, _ httprouter.Params) {
 	// Display new user page
 	RenderTemplate(responseWriter, request, "users/new", nil)
 }
 
+// HandleUserCreate creates a new user from submitted parameters
 func HandleUserCreate(responseWriter http.ResponseWriter, request *http.Request, _ httprouter.Params) {
 	// Process creating a new user
 	user, errors := NewUser(
@@ -56,6 +87,7 @@ func HandleUserCreate(responseWriter http.ResponseWriter, request *http.Request,
 	http.Redirect(responseWriter, request, redirectURL, http.StatusFound)
 }
 
+// HandleUserEdit displays a page from which a user can update their details
 func HandleUserEdit(responseWriter http.ResponseWriter, request *http.Request, _ httprouter.Params) {
 	user := RequestUser(request)
 	templateData := map[string]interface{}{
@@ -64,6 +96,7 @@ func HandleUserEdit(responseWriter http.ResponseWriter, request *http.Request, _
 	RenderTemplate(responseWriter, request, "users/edit", templateData)
 }
 
+// HandleUserUpdate persists a user's updated details
 func HandleUserUpdate(responseWriter http.ResponseWriter, request *http.Request, _ httprouter.Params) {
 	currentUser := RequestUser(request)
 	email := request.FormValue("email")

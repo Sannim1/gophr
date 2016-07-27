@@ -63,6 +63,7 @@ func main() {
 	authenticatedRouter.GET("/images/new", HandleImageNew)
 	authenticatedRouter.POST("/images/new", HandleImageCreate)
 	authenticatedRouter.GET("/image/:imageID", HandleImageShow)
+	authenticatedRouter.GET("/user/:userID", HandleUserShow)
 
 	middleware := Middleware{}
 	middleware.Add(unauthenticatedRouter)
