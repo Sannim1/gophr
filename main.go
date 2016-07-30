@@ -57,6 +57,7 @@ func main() {
 	unauthenticatedRouter.POST("/register", HandleUserCreate)
 	unauthenticatedRouter.GET("/login", HandleSessionNew)
 	unauthenticatedRouter.POST("/login", HandleSessionCreate)
+	unauthenticatedRouter.GET("/generate-thumbnails", HandleGenerateMissingThumbnails)
 	unauthenticatedRouter.ServeFiles("/assets/*filepath", http.Dir("assets/"))
 	unauthenticatedRouter.ServeFiles("/im/*filepath", http.Dir("data/images/"))
 

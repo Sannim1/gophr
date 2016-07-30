@@ -218,3 +218,22 @@ func (image *Image) resizePreview(errorChannel chan error, srcImage image.Image)
 	errorChannel <- imaging.Save(destinationImage, destinationImagePath)
 }
 
+// HasThumbnail checks if an image has a generated thumbnail
+func (image *Image) HasThumbnail() bool {
+	thumbnailPath := "./data/images/thumbnail/" + image.Location
+
+	if _, err := os.Stat(thumbnailPath); err != nil {
+		return false
+	}
+	return true
+}
+
+// HasPreviewImage checks if an image has a preview image
+func (image *Image) HasPreviewImage() bool {
+	previewImagePath := "./data/images/preview/" + image.Location
+
+	if _, err := os.Stat(previewImagePath); err != nil {
+		return false
+	}
+	return true
+}

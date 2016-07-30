@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"net/http"
+	"sync"
 
 	"github.com/julienschmidt/httprouter"
 )
@@ -121,4 +122,31 @@ func HandleImageCreateFromFile(responseWriter http.ResponseWriter, request *http
 
 	redirectURL := "/?flash=Image+Uploaded+Successfully"
 	http.Redirect(responseWriter, request, redirectURL, http.StatusFound)
+}
+
+// HandleGenerateMissingThumbnails generates thumbnails for images that don't have one
+func HandleGenerateMissingThumbnails(responseWriter http.ResponseWriter, request *http.Request, _ httprouter.Params) {
+	images, err := globalImageStore.FindAll(0)
+	if err != nil {
+		panic(err)
+	}
+
+	imageResizeWaitGroup := sync.WaitGroup{}
+	for index := range images {
+		currentImage := &images[index]
+		if !(currentImage.HasPreviewImage() && currentImage.HasThumbnail()) {
+
+			go func(image *Image) {
+				imageResizeWaitGroup.Add(1)
+
+				image.CreateResizedImages()
+				fmt.Printf("Created resized images for: {%s - %s}\n", image.ID, image.Name)
+
+				imageResizeWaitGroup.Done()
+			}(currentImage)
+		}
+	}
+
+	imageResizeWaitGroup.Wait()
+	fmt.Print("Finished generating missing thumbnails for all images\n")
 }
