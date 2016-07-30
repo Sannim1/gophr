@@ -1,6 +1,7 @@
 package main
 
 import (
+	"image"
 	"io"
 	"mime"
 	"mime/multipart"
@@ -8,6 +9,8 @@ import (
 	"os"
 	"path/filepath"
 	"time"
+
+	"github.com/disintegration/imaging"
 )
 
 // Image represents an image
@@ -21,7 +24,14 @@ type Image struct {
 	Description string
 }
 
-const imageIDLength = 10
+const (
+	imageIDLength = 10
+
+	thumbnailWidth  = 400
+	thumbnailHeight = thumbnailWidth
+
+	previewImageWidth = 800
+)
 
 // A map of accepted mime types and their corresponding file extensions
 var mimeExtensions = map[string]string{
@@ -51,6 +61,16 @@ func NewImage(user *User) *Image {
 // StaticRoute generates a path from which the image can be retrieved
 func (image *Image) StaticRoute() string {
 	return "/im/" + image.Location
+}
+
+// StaticThumbnailRoute generates a URL from which a thumbnail of the image can be retrieved
+func (image *Image) StaticThumbnailRoute() string {
+	return "/im/thumbnail/" + image.Location
+}
+
+// StaticPreviewRoute generates a URL from a preview of the image can be retrieved
+func (image *Image) StaticPreviewRoute() string {
+	return "/im/preview/" + image.Location
 }
 
 // ShowRoute generates a path to the image's display page
@@ -105,6 +125,12 @@ func (image *Image) CreateFromURL(imageURL string) error {
 
 	image.Size = imageSize
 
+	// Create the various resized versions of the image
+	err = image.CreateResizedImages()
+	if err != nil {
+		return err
+	}
+
 	// save image object to the database
 	return globalImageStore.Save(image)
 }
@@ -138,6 +164,57 @@ func (image *Image) CreateFromFile(file multipart.File, headers *multipart.FileH
 
 	image.Size = imageSize
 
+	// Create the various resized versions of the image
+	err = image.CreateResizedImages()
+	if err != nil {
+		return err
+	}
+
 	// save image object to the database
 	return globalImageStore.Save(image)
 }
+
+// CreateResizedImages generates predefined thumbnail images for the specified image
+func (image *Image) CreateResizedImages() error {
+	// Genereate an image from a file
+	srcImage, err := imaging.Open("./data/images/" + image.Location)
+	if err != nil {
+		return err
+	}
+
+	// Create a channel to receive errors on
+	errorChannel := make(chan error)
+
+	// Process each resize
+	go image.resizePreview(errorChannel, srcImage)
+	go image.resizeThumbnail(errorChannel, srcImage)
+
+	// Wait for images to finish resizing
+	for i := 0; i < 2; i++ {
+		err = <-errorChannel
+	}
+
+	return err
+}
+
+func (image *Image) resizeThumbnail(errorChannel chan error, srcImage image.Image) {
+
+	destinationImage := imaging.Thumbnail(srcImage, thumbnailWidth, thumbnailHeight, imaging.Lanczos)
+
+	destinationImagePath := "./data/images/thumbnail/" + image.Location
+
+	errorChannel <- imaging.Save(destinationImage, destinationImagePath)
+}
+
+func (image *Image) resizePreview(errorChannel chan error, srcImage image.Image) {
+	originalImageSize := srcImage.Bounds().Size()
+	aspectRatio := float64(originalImageSize.Y) / float64(originalImageSize.X)
+
+	previewImageHeight := int(float64(previewImageWidth) * aspectRatio)
+
+	destinationImage := imaging.Resize(srcImage, previewImageWidth, previewImageHeight, imaging.Lanczos)
+
+	destinationImagePath := "./data/images/preview/" + image.Location
+	errorChannel <- imaging.Save(destinationImage, destinationImagePath)
+}
+

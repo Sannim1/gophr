@@ -4,11 +4,15 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"runtime"
 
 	"github.com/julienschmidt/httprouter"
 )
 
 func init() {
+	// Ensure our goroutines run accross all cores
+	runtime.GOMAXPROCS(runtime.NumCPU())
+
 	// Assign a user store
 	store, err := NewFileUserStore("./data/users.json")
 	if err != nil {
